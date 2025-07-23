@@ -47,7 +47,7 @@ def test_database_connections():
         try:
             engine_a = db_manager.get_db_a_engine()
             with engine_a.connect() as conn:
-                result = conn.execute("SELECT 1 as test;")
+                result = conn.execute("SELECT 1 as test")
                 logger.info("✓ Database A SQLAlchemy engine working")
         except Exception as e:
             logger.error(f"✗ Database A SQLAlchemy engine failed: {e}")
@@ -56,7 +56,7 @@ def test_database_connections():
         try:
             engine_b = db_manager.get_db_b_engine()
             with engine_b.connect() as conn:
-                result = conn.execute("SELECT 1 as test;")
+                result = conn.execute("SELECT 1 as test")
                 logger.info("✓ Database B SQLAlchemy engine working")
         except Exception as e:
             logger.error(f"✗ Database B SQLAlchemy engine failed: {e}")
