@@ -25,10 +25,10 @@ Program ini dibuat khusus untuk membuat tabel di Database B berdasarkan query da
 
 ## Struktur Tabel yang Dibuat
 
-### Tabel `fact_order`
+### Tabel `tms_fact_order`
 
 ```sql
-CREATE TABLE fact_order (
+CREATE TABLE tms_fact_order (
     -- Columns from the fact_order query
     status VARCHAR(50),
     manifest_reference VARCHAR(100),
@@ -60,14 +60,14 @@ CREATE TABLE fact_order (
 ```
 
 **Indexes:**
-- `idx_fact_order_faktur_date` - untuk query berdasarkan tanggal faktur
-- `idx_fact_order_route_id` - untuk query berdasarkan route
-- `idx_fact_order_last_synced` - untuk tracking sinkronisasi
+- `idx_tms_fact_order_faktur_date` - untuk query berdasarkan tanggal faktur
+- `idx_tms_fact_order_route_id` - untuk query berdasarkan route
+- `idx_tms_fact_order_last_synced` - untuk tracking sinkronisasi
 
-### Tabel `fact_delivery`
+### Tabel `tms_fact_delivery`
 
 ```sql
-CREATE TABLE fact_delivery (
+CREATE TABLE tms_fact_delivery (
     -- Columns from the fact_delivery query
     route_id VARCHAR(50),
     manifest_reference VARCHAR(100),
@@ -113,18 +113,18 @@ CREATE TABLE fact_delivery (
 ```
 
 **Indexes:**
-- `idx_fact_delivery_route_id` - untuk query berdasarkan route
-- `idx_fact_delivery_order_id` - untuk query berdasarkan order
-- `idx_fact_delivery_faktur_date` - untuk query berdasarkan tanggal faktur
-- `idx_fact_delivery_delivery_date` - untuk query berdasarkan tanggal delivery
-- `idx_fact_delivery_last_synced` - untuk tracking sinkronisasi
-- `idx_fact_delivery_driver_id` - untuk query berdasarkan driver
-- `idx_fact_delivery_vehicle_id` - untuk query berdasarkan vehicle
+- `idx_tms_fact_delivery_route_id` - untuk query berdasarkan route
+- `idx_tms_fact_delivery_order_id` - untuk query berdasarkan order
+- `idx_tms_fact_delivery_faktur_date` - untuk query berdasarkan tanggal faktur
+- `idx_tms_fact_delivery_delivery_date` - untuk query berdasarkan tanggal delivery
+- `idx_tms_fact_delivery_last_synced` - untuk tracking sinkronisasi
+- `idx_tms_fact_delivery_driver_id` - untuk query berdasarkan driver
+- `idx_tms_fact_delivery_vehicle_id` - untuk query berdasarkan vehicle
 
-### Tabel `sync_log`
+### Tabel `tms_sync_log`
 
 ```sql
-CREATE TABLE sync_log (
+CREATE TABLE tms_sync_log (
     id SERIAL PRIMARY KEY,
     sync_type VARCHAR(50) NOT NULL,
     start_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -138,9 +138,9 @@ CREATE TABLE sync_log (
 ```
 
 **Indexes:**
-- `idx_sync_log_sync_type` - untuk query berdasarkan tipe sinkronisasi
-- `idx_sync_log_start_time` - untuk query berdasarkan waktu mulai
-- `idx_sync_log_status` - untuk query berdasarkan status
+- `idx_tms_sync_log_sync_type` - untuk query berdasarkan tipe sinkronisasi
+- `idx_tms_sync_log_start_time` - untuk query berdasarkan waktu mulai
+- `idx_tms_sync_log_status` - untuk query berdasarkan status
 
 ## Cara Penggunaan
 

@@ -155,9 +155,9 @@ python3 show_table_structure.py --table fact_order
 
 ## Struktur Tabel Database B
 
-### fact_order
+### tms_fact_order
 ```sql
-CREATE TABLE fact_order (
+CREATE TABLE tms_fact_order (
     status VARCHAR(50),
     manifest_reference VARCHAR(100),
     order_id VARCHAR(50) PRIMARY KEY,
@@ -180,9 +180,9 @@ CREATE TABLE fact_order (
 );
 ```
 
-### fact_delivery
+### tms_fact_delivery
 ```sql
-CREATE TABLE fact_delivery (
+CREATE TABLE tms_fact_delivery (
     route_id VARCHAR(50),
     manifest_reference VARCHAR(100),
     route_detail_id VARCHAR(50),
@@ -220,9 +220,9 @@ CREATE TABLE fact_delivery (
 );
 ```
 
-### sync_log
+### tms_sync_log
 ```sql
-CREATE TABLE sync_log (
+CREATE TABLE tms_sync_log (
     id SERIAL PRIMARY KEY,
     sync_type VARCHAR(50) NOT NULL,
     start_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

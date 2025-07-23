@@ -20,10 +20,10 @@ if ! command -v python3 &> /dev/null; then
 fi
 
 echo "Available options:"
-echo "1. Create all tables (fact_order, fact_delivery, sync_log)"
-echo "2. Create fact_order table only"
-echo "3. Create fact_delivery table only"
-echo "4. Create sync_log table only"
+echo "1. Create all tables (tms_fact_order, tms_fact_delivery, tms_sync_log)"
+echo "2. Create tms_fact_order table only"
+echo "3. Create tms_fact_delivery table only"
+echo "4. Create tms_sync_log table only"
 echo "5. Force recreate all tables (drop if exists)"
 echo "6. Show table structure"
 echo "7. List all tables"
@@ -37,15 +37,15 @@ case $choice in
         python3 create_tables.py --table all
         ;;
     2)
-        echo "Creating fact_order table..."
+        echo "Creating tms_fact_order table..."
         python3 create_tables.py --table fact_order
         ;;
     3)
-        echo "Creating fact_delivery table..."
+        echo "Creating tms_fact_delivery table..."
         python3 create_tables.py --table fact_delivery
         ;;
     4)
-        echo "Creating sync_log table..."
+        echo "Creating tms_sync_log table..."
         python3 create_tables.py --table sync_log
         ;;
     5)

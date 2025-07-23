@@ -11,7 +11,7 @@ from database_utils import DatabaseManager, logger
 def get_fact_order_table_structure():
     """Get the table structure for fact_order based on the query"""
     return """
-    CREATE TABLE IF NOT EXISTS fact_order (
+    CREATE TABLE IF NOT EXISTS tms_fact_order (
         -- Columns from the fact_order query
         status VARCHAR(50),
         manifest_reference VARCHAR(100),
@@ -42,9 +42,9 @@ def get_fact_order_table_structure():
     );
     
     -- Create index for better performance
-    CREATE INDEX IF NOT EXISTS idx_fact_order_faktur_date ON fact_order(faktur_date);
-    CREATE INDEX IF NOT EXISTS idx_fact_order_route_id ON fact_order(route_id);
-    CREATE INDEX IF NOT EXISTS idx_fact_order_last_synced ON fact_order(last_synced);
+    CREATE INDEX IF NOT EXISTS idx_tms_fact_order_faktur_date ON tms_fact_order(faktur_date);
+    CREATE INDEX IF NOT EXISTS idx_tms_fact_order_route_id ON tms_fact_order(route_id);
+    CREATE INDEX IF NOT EXISTS idx_tms_fact_order_last_synced ON tms_fact_order(last_synced);
     
     -- Create trigger to update updated_at column
     CREATE OR REPLACE FUNCTION update_fact_order_updated_at()
@@ -55,9 +55,9 @@ def get_fact_order_table_structure():
     END;
     $$ LANGUAGE plpgsql;
     
-    DROP TRIGGER IF EXISTS trigger_fact_order_updated_at ON fact_order;
-    CREATE TRIGGER trigger_fact_order_updated_at
-        BEFORE UPDATE ON fact_order
+    DROP TRIGGER IF EXISTS trigger_tms_fact_order_updated_at ON tms_fact_order;
+    CREATE TRIGGER trigger_tms_fact_order_updated_at
+        BEFORE UPDATE ON tms_fact_order
         FOR EACH ROW
         EXECUTE FUNCTION update_fact_order_updated_at();
     """
@@ -65,7 +65,7 @@ def get_fact_order_table_structure():
 def get_fact_delivery_table_structure():
     """Get the table structure for fact_delivery based on the query"""
     return """
-    CREATE TABLE IF NOT EXISTS fact_delivery (
+    CREATE TABLE IF NOT EXISTS tms_fact_delivery (
         -- Columns from the fact_delivery query
         route_id VARCHAR(50),
         manifest_reference VARCHAR(100),
@@ -110,13 +110,13 @@ def get_fact_delivery_table_structure():
     );
     
     -- Create indexes for better performance
-    CREATE INDEX IF NOT EXISTS idx_fact_delivery_route_id ON fact_delivery(route_id);
-    CREATE INDEX IF NOT EXISTS idx_fact_delivery_order_id ON fact_delivery(order_id);
-    CREATE INDEX IF NOT EXISTS idx_fact_delivery_faktur_date ON fact_delivery(faktur_date);
-    CREATE INDEX IF NOT EXISTS idx_fact_delivery_delivery_date ON fact_delivery(delivery_date);
-    CREATE INDEX IF NOT EXISTS idx_fact_delivery_last_synced ON fact_delivery(last_synced);
-    CREATE INDEX IF NOT EXISTS idx_fact_delivery_driver_id ON fact_delivery(driver_id);
-    CREATE INDEX IF NOT EXISTS idx_fact_delivery_vehicle_id ON fact_delivery(vehicle_id);
+    CREATE INDEX IF NOT EXISTS idx_tms_fact_delivery_route_id ON tms_fact_delivery(route_id);
+    CREATE INDEX IF NOT EXISTS idx_tms_fact_delivery_order_id ON tms_fact_delivery(order_id);
+    CREATE INDEX IF NOT EXISTS idx_tms_fact_delivery_faktur_date ON tms_fact_delivery(faktur_date);
+    CREATE INDEX IF NOT EXISTS idx_tms_fact_delivery_delivery_date ON tms_fact_delivery(delivery_date);
+    CREATE INDEX IF NOT EXISTS idx_tms_fact_delivery_last_synced ON tms_fact_delivery(last_synced);
+    CREATE INDEX IF NOT EXISTS idx_tms_fact_delivery_driver_id ON tms_fact_delivery(driver_id);
+    CREATE INDEX IF NOT EXISTS idx_tms_fact_delivery_vehicle_id ON tms_fact_delivery(vehicle_id);
     
     -- Create trigger to update updated_at column
     CREATE OR REPLACE FUNCTION update_fact_delivery_updated_at()
@@ -127,9 +127,9 @@ def get_fact_delivery_table_structure():
     END;
     $$ LANGUAGE plpgsql;
     
-    DROP TRIGGER IF EXISTS trigger_fact_delivery_updated_at ON fact_delivery;
-    CREATE TRIGGER trigger_fact_delivery_updated_at
-        BEFORE UPDATE ON fact_delivery
+    DROP TRIGGER IF EXISTS trigger_tms_fact_delivery_updated_at ON tms_fact_delivery;
+    CREATE TRIGGER trigger_tms_fact_delivery_updated_at
+        BEFORE UPDATE ON tms_fact_delivery
         FOR EACH ROW
         EXECUTE FUNCTION update_fact_delivery_updated_at();
     """
@@ -137,7 +137,7 @@ def get_fact_delivery_table_structure():
 def get_sync_log_table_structure():
     """Get the table structure for sync_log"""
     return """
-    CREATE TABLE IF NOT EXISTS sync_log (
+    CREATE TABLE IF NOT EXISTS tms_sync_log (
         id SERIAL PRIMARY KEY,
         sync_type VARCHAR(50) NOT NULL,
         start_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -150,9 +150,9 @@ def get_sync_log_table_structure():
     );
     
     -- Create indexes for sync_log
-    CREATE INDEX IF NOT EXISTS idx_sync_log_sync_type ON sync_log(sync_type);
-    CREATE INDEX IF NOT EXISTS idx_sync_log_start_time ON sync_log(start_time);
-    CREATE INDEX IF NOT EXISTS idx_sync_log_status ON sync_log(status);
+    CREATE INDEX IF NOT EXISTS idx_tms_sync_log_sync_type ON tms_sync_log(sync_type);
+    CREATE INDEX IF NOT EXISTS idx_tms_sync_log_start_time ON tms_sync_log(start_time);
+    CREATE INDEX IF NOT EXISTS idx_tms_sync_log_status ON tms_sync_log(status);
     
     -- Create trigger to update updated_at column
     CREATE OR REPLACE FUNCTION update_sync_log_updated_at()
@@ -163,9 +163,9 @@ def get_sync_log_table_structure():
     END;
     $$ LANGUAGE plpgsql;
     
-    DROP TRIGGER IF EXISTS trigger_sync_log_updated_at ON sync_log;
-    CREATE TRIGGER trigger_sync_log_updated_at
-        BEFORE UPDATE ON sync_log
+    DROP TRIGGER IF EXISTS trigger_tms_sync_log_updated_at ON tms_sync_log;
+    CREATE TRIGGER trigger_tms_sync_log_updated_at
+        BEFORE UPDATE ON tms_sync_log
         FOR EACH ROW
         EXECUTE FUNCTION update_sync_log_updated_at();
     """
@@ -239,15 +239,15 @@ def create_all_tables(db_manager, force_recreate=False):
     """Create all tables in Database B"""
     tables_config = [
         {
-            'name': 'fact_order',
+            'name': 'tms_fact_order',
             'create_sql': get_fact_order_table_structure()
         },
         {
-            'name': 'fact_delivery',
+            'name': 'tms_fact_delivery',
             'create_sql': get_fact_delivery_table_structure()
         },
         {
-            'name': 'sync_log',
+            'name': 'tms_sync_log',
             'create_sql': get_sync_log_table_structure()
         }
     ]
@@ -310,15 +310,15 @@ def main():
             # Create specific table
             table_configs = {
                 'fact_order': {
-                    'name': 'fact_order',
+                    'name': 'tms_fact_order',
                     'create_sql': get_fact_order_table_structure()
                 },
                 'fact_delivery': {
-                    'name': 'fact_delivery',
+                    'name': 'tms_fact_delivery',
                     'create_sql': get_fact_delivery_table_structure()
                 },
                 'sync_log': {
-                    'name': 'sync_log',
+                    'name': 'tms_sync_log',
                     'create_sql': get_sync_log_table_structure()
                 }
             }

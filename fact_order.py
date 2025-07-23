@@ -85,7 +85,7 @@ def get_fact_order_query():
 def create_fact_order_table_schema_b(db_manager):
     """Create fact_order table in Database B if it doesn't exist"""
     create_table_query = """
-    CREATE TABLE IF NOT EXISTS fact_order (
+    CREATE TABLE IF NOT EXISTS tms_fact_order (
         status VARCHAR(50),
         manifest_reference VARCHAR(100),
         order_id VARCHAR(50) PRIMARY KEY,
@@ -113,7 +113,7 @@ def create_fact_order_table_schema_b(db_manager):
         with engine.connect() as conn:
             conn.execute(create_table_query)
             conn.commit()
-        logger.info("fact_order table created/verified in Database B")
+        logger.info("tms_fact_order table created/verified in Database B")
     except Exception as e:
         logger.error(f"Error creating fact_order table: {e}")
         raise
@@ -145,7 +145,7 @@ def process_fact_order():
         
         # Upsert data to Database B
         logger.info("Upserting fact_order data to Database B...")
-        db_manager.upsert_dataframe_to_db(df, 'fact_order', unique_columns, 'B')
+        db_manager.upsert_dataframe_to_db(df, 'tms_fact_order', unique_columns, 'B')
         
         logger.info("fact_order data processing completed successfully!")
         

@@ -69,7 +69,7 @@ def get_fact_delivery_query():
 def create_fact_delivery_table_schema_b(db_manager):
     """Create fact_delivery table in Database B if it doesn't exist"""
     create_table_query = """
-    CREATE TABLE IF NOT EXISTS fact_delivery (
+    CREATE TABLE IF NOT EXISTS tms_fact_delivery (
         route_id VARCHAR(50),
         manifest_reference VARCHAR(100),
         route_detail_id VARCHAR(50),
@@ -112,7 +112,7 @@ def create_fact_delivery_table_schema_b(db_manager):
         with engine.connect() as conn:
             conn.execute(create_table_query)
             conn.commit()
-        logger.info("fact_delivery table created/verified in Database B")
+        logger.info("tms_fact_delivery table created/verified in Database B")
     except Exception as e:
         logger.error(f"Error creating fact_delivery table: {e}")
         raise
@@ -144,7 +144,7 @@ def process_fact_delivery():
         
         # Upsert data to Database B
         logger.info("Upserting fact_delivery data to Database B...")
-        db_manager.upsert_dataframe_to_db(df, 'fact_delivery', unique_columns, 'B')
+        db_manager.upsert_dataframe_to_db(df, 'tms_fact_delivery', unique_columns, 'B')
         
         logger.info("fact_delivery data processing completed successfully!")
         

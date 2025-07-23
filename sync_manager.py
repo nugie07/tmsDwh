@@ -15,7 +15,7 @@ from fact_delivery import process_fact_delivery
 def create_sync_log_table(db_manager):
     """Create sync_log table in Database B to track synchronization history"""
     create_table_query = """
-    CREATE TABLE IF NOT EXISTS sync_log (
+    CREATE TABLE IF NOT EXISTS tms_sync_log (
         id SERIAL PRIMARY KEY,
         sync_type VARCHAR(50) NOT NULL,
         start_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -32,7 +32,7 @@ def create_sync_log_table(db_manager):
         with engine.connect() as conn:
             conn.execute(create_table_query)
             conn.commit()
-        logger.info("sync_log table created/verified in Database B")
+        logger.info("tms_sync_log table created/verified in Database B")
     except Exception as e:
         logger.error(f"Error creating sync_log table: {e}")
         raise
@@ -42,7 +42,7 @@ def log_sync_start(db_manager, sync_type):
     try:
         engine = db_manager.get_db_b_engine()
         insert_query = """
-        INSERT INTO sync_log (sync_type, status, start_time)
+        INSERT INTO tms_sync_log (sync_type, status, start_time)
         VALUES (%s, 'RUNNING', CURRENT_TIMESTAMP)
         RETURNING id;
         """
@@ -63,7 +63,7 @@ def log_sync_complete(db_manager, sync_id, status, records_processed=0, error_me
     try:
         engine = db_manager.get_db_b_engine()
         update_query = """
-        UPDATE sync_log 
+        UPDATE tms_sync_log 
         SET end_time = CURRENT_TIMESTAMP,
             status = %s,
             records_processed = %s,
@@ -87,7 +87,7 @@ def get_sync_status(db_manager, sync_type=None, limit=10):
         if sync_type:
             query = """
             SELECT sync_type, start_time, end_time, status, records_processed, error_message
-            FROM sync_log 
+            FROM tms_sync_log 
             WHERE sync_type = %s
             ORDER BY start_time DESC 
             LIMIT %s;
@@ -96,7 +96,7 @@ def get_sync_status(db_manager, sync_type=None, limit=10):
         else:
             query = """
             SELECT sync_type, start_time, end_time, status, records_processed, error_message
-            FROM sync_log 
+            FROM tms_sync_log 
             ORDER BY start_time DESC 
             LIMIT %s;
             """
