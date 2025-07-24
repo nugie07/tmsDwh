@@ -177,13 +177,14 @@ def create_table(db_manager, table_name, create_sql):
         
         engine = db_manager.get_db_b_engine()
         with engine.connect() as conn:
+            from sqlalchemy import text
             # Split the SQL into individual statements
             statements = create_sql.split(';')
             
             for statement in statements:
                 statement = statement.strip()
                 if statement:  # Skip empty statements
-                    conn.execute(statement)
+                    conn.execute(text(statement))
             
             conn.commit()
         
@@ -200,10 +201,11 @@ def drop_table_if_exists(db_manager, table_name):
         logger.info(f"Dropping table if exists: {table_name}")
         
         engine = db_manager.get_db_b_engine()
+        from sqlalchemy import text
         drop_sql = f"DROP TABLE IF EXISTS {table_name} CASCADE;"
         
         with engine.connect() as conn:
-            conn.execute(drop_sql)
+            conn.execute(text(drop_sql))
             conn.commit()
         
         logger.info(f"✓ Table {table_name} dropped successfully")
@@ -217,16 +219,17 @@ def check_table_exists(db_manager, table_name):
     """Check if table exists in Database B"""
     try:
         engine = db_manager.get_db_b_engine()
+        from sqlalchemy import text
         check_sql = """
         SELECT EXISTS (
             SELECT FROM information_schema.tables 
             WHERE table_schema = 'public' 
-            AND table_name = %s
+            AND table_name = :table_name
         );
         """
         
         with engine.connect() as conn:
-            result = conn.execute(check_sql, (table_name,))
+            result = conn.execute(text(check_sql), {"table_name": table_name})
             exists = result.fetchone()[0]
         
         return exists
