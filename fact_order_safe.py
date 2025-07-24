@@ -51,7 +51,13 @@ def get_fact_order_safe_query(date_from=None, date_to=None):
         THEN c.created_date::DATE 
         ELSE NULL 
       END AS route_created,
-      a.delivery_date,
+      CASE 
+        WHEN a.delivery_date IS NOT NULL 
+        AND a.delivery_date >= '1900-01-01'::date
+        AND a.delivery_date <= '2100-12-31'::date
+        THEN a.delivery_date 
+        ELSE NULL 
+      END AS delivery_date,
       c.route_id,
       a.updated_date AS tms_complete,
       SUM(od.quantity_faktur)::NUMERIC(15,2) AS faktur_total_quantity,
