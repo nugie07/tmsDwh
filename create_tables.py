@@ -95,10 +95,10 @@ def get_fact_delivery_table_structure():
         kenek_name VARCHAR(100),
         driver_status VARCHAR(50),
         manifest_integration_id VARCHAR(100),
-        complete_time TIMESTAMP,
-        net_price NUMERIC(15,2),
-        quantity_delivery NUMERIC(15,2),
-        quantity_faktur NUMERIC(15,2),
+        complete_time TEXT,
+        net_price TEXT,
+        quantity_delivery TEXT,
+        quantity_faktur TEXT,
         
         -- Additional tracking columns
         last_synced TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
