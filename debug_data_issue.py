@@ -7,6 +7,42 @@ import sys
 import logging
 from database_utils import DatabaseManager, logger
 
+def check_table_structure():
+    """Check the structure of problematic tables"""
+    
+    db_manager = DatabaseManager()
+    
+    # Check driver_task_confirmations table structure
+    check_driver_task_confirmations_structure = """
+    SELECT column_name, data_type, is_nullable
+    FROM information_schema.columns 
+    WHERE table_name = 'driver_task_confirmations' 
+    AND table_schema = 'public'
+    ORDER BY ordinal_position;
+    """
+    
+    # Check driver_tasks table structure
+    check_driver_tasks_structure = """
+    SELECT column_name, data_type, is_nullable
+    FROM information_schema.columns 
+    WHERE table_name = 'driver_tasks' 
+    AND table_schema = 'public'
+    ORDER BY ordinal_position;
+    """
+    
+    try:
+        print("=== Checking driver_task_confirmations table structure ===")
+        df1 = db_manager.execute_query_to_dataframe(check_driver_task_confirmations_structure, 'A')
+        print(df1.to_string())
+        
+        print("\n=== Checking driver_tasks table structure ===")
+        df2 = db_manager.execute_query_to_dataframe(check_driver_tasks_structure, 'A')
+        print(df2.to_string())
+        
+    except Exception as e:
+        logger.error(f"Error checking table structure: {e}")
+        raise
+
 def check_problematic_dates():
     """Check for problematic date/timestamp values in the database"""
     
@@ -15,7 +51,6 @@ def check_problematic_dates():
     # Query to check for problematic location_confirmation_timestamp values
     check_location_confirmation_query = """
     SELECT 
-        order_id,
         driver_task_id,
         location_confirmation_timestamp,
         location_confirmation_timestamp::TEXT as timestamp_text
@@ -83,7 +118,11 @@ def test_simple_query():
       e.code,
       a.faktur_date,
       a.created_date AS tms_created,
-      c.created_date::DATE AS route_created,
+      CASE 
+        WHEN c.created_date IS NOT NULL 
+        THEN c.created_date::DATE 
+        ELSE NULL 
+      END AS route_created,
       a.delivery_date,
       c.route_id,
       a.updated_date AS tms_complete,
@@ -146,7 +185,12 @@ def test_simple_query():
 if __name__ == "__main__":
     print("Debugging data issues in TMS database...")
     
-    # First check for problematic data
+    # First check table structure
+    check_table_structure()
+    
+    print("\n" + "="*50)
+    
+    # Then check for problematic data
     check_problematic_dates()
     
     print("\n" + "="*50)
