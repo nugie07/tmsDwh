@@ -79,6 +79,99 @@ def check_problematic_created_date_data():
         logger.error(f"Error checking created_date: {e}")
         print(f"Error: {e}")
 
+def find_problematic_data_in_date_range():
+    """Find problematic data specifically in the date range that's causing issues"""
+    
+    db_manager = DatabaseManager()
+    
+    # Check for problematic data in the specific date range
+    problematic_data_query = """
+    SELECT 
+        dtc.driver_task_id,
+        dtc.location_confirmation_timestamp,
+        dtc.location_confirmation_timestamp::TEXT as timestamp_text,
+        EXTRACT(YEAR FROM dtc.location_confirmation_timestamp) as year_extracted,
+        o.order_id,
+        o.faktur_date
+    FROM "public"."driver_task_confirmations" dtc
+    JOIN "public"."driver_tasks" dt ON dt.driver_task_id = dtc.driver_task_id
+    JOIN "public"."order" o ON o.order_id = dt.order_id
+    WHERE dtc.location_confirmation_timestamp IS NOT NULL
+    AND o.faktur_date >= '2025-04-01' 
+    AND o.faktur_date <= '2025-05-31'
+    ORDER BY dtc.location_confirmation_timestamp DESC
+    LIMIT 50;
+    """
+    
+    try:
+        print("\n=== Checking problematic data in date range 2025-04-01 to 2025-05-31 ===")
+        df = db_manager.execute_query_to_dataframe(problematic_data_query, 'A')
+        print(df.to_string())
+        
+        # Check for any problematic years
+        if 'year_extracted' in df.columns:
+            problematic_years = df[df['year_extracted'] > 2100]
+            if not problematic_years.empty:
+                print(f"\n=== PROBLEMATIC YEARS FOUND IN DATE RANGE ===")
+                print(problematic_years.to_string())
+            else:
+                print(f"\n=== No problematic years found in date range ===")
+        
+    except Exception as e:
+        logger.error(f"Error checking problematic data in date range: {e}")
+        print(f"Error: {e}")
+
+def check_all_timestamp_fields():
+    """Check all timestamp fields that might be causing the issue"""
+    
+    db_manager = DatabaseManager()
+    
+    # Check all timestamp fields in the query
+    all_timestamps_query = """
+    SELECT 
+        o.order_id,
+        o.faktur_date,
+        o.created_date,
+        o.updated_date,
+        o.delivery_date,
+        c.created_date as route_created_date,
+        g.location_confirmation_timestamp,
+        EXTRACT(YEAR FROM o.faktur_date) as faktur_year,
+        EXTRACT(YEAR FROM o.created_date) as order_created_year,
+        EXTRACT(YEAR FROM o.updated_date) as order_updated_year,
+        EXTRACT(YEAR FROM o.delivery_date) as delivery_year,
+        EXTRACT(YEAR FROM c.created_date) as route_created_year,
+        EXTRACT(YEAR FROM g.location_confirmation_timestamp) as location_year
+    FROM "public"."order" o
+    LEFT JOIN "public"."route_detail" b ON b.order_id = o.order_id
+    LEFT JOIN "public"."route" c ON c.route_id = b.route_id
+    LEFT JOIN "public"."driver_tasks" f ON f.order_id = o.order_id
+    LEFT JOIN "public"."driver_task_confirmations" g ON g.driver_task_id = f.driver_task_id
+    WHERE o.faktur_date >= '2025-04-01' 
+    AND o.faktur_date <= '2025-05-31'
+    AND (
+        EXTRACT(YEAR FROM o.faktur_date) > 2100 OR
+        EXTRACT(YEAR FROM o.created_date) > 2100 OR
+        EXTRACT(YEAR FROM o.updated_date) > 2100 OR
+        EXTRACT(YEAR FROM o.delivery_date) > 2100 OR
+        EXTRACT(YEAR FROM c.created_date) > 2100 OR
+        EXTRACT(YEAR FROM g.location_confirmation_timestamp) > 2100
+    )
+    LIMIT 20;
+    """
+    
+    try:
+        print("\n=== Checking ALL timestamp fields for problematic years ===")
+        df = db_manager.execute_query_to_dataframe(all_timestamps_query, 'A')
+        if not df.empty:
+            print(df.to_string())
+        else:
+            print("No problematic years found in any timestamp fields")
+        
+    except Exception as e:
+        logger.error(f"Error checking all timestamp fields: {e}")
+        print(f"Error: {e}")
+
 def test_query_without_problematic_field():
     """Test query without the problematic field to isolate the issue"""
     
@@ -265,6 +358,12 @@ if __name__ == "__main__":
     
     # Check for problematic created_date data
     check_problematic_created_date_data()
+    
+    # Find problematic data in specific date range
+    find_problematic_data_in_date_range()
+    
+    # Check all timestamp fields
+    check_all_timestamp_fields()
     
     # Test query without problematic field
     test_query_without_problematic_field()
