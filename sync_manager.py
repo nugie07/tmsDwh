@@ -30,7 +30,8 @@ def create_sync_log_table(db_manager):
     try:
         engine = db_manager.get_db_b_engine()
         with engine.connect() as conn:
-            conn.execute(create_table_query)
+            from sqlalchemy import text
+            conn.execute(text(create_table_query))
             conn.commit()
         logger.info("tms_sync_log table created/verified in Database B")
     except Exception as e:
@@ -43,12 +44,13 @@ def log_sync_start(db_manager, sync_type):
         engine = db_manager.get_db_b_engine()
         insert_query = """
         INSERT INTO tms_sync_log (sync_type, status, start_time)
-        VALUES (%s, 'RUNNING', CURRENT_TIMESTAMP)
+        VALUES (:sync_type, 'RUNNING', CURRENT_TIMESTAMP)
         RETURNING id;
         """
         
         with engine.connect() as conn:
-            result = conn.execute(insert_query, (sync_type,))
+            from sqlalchemy import text
+            result = conn.execute(text(insert_query), {"sync_type": sync_type})
             sync_id = result.fetchone()[0]
             conn.commit()
         
@@ -65,14 +67,20 @@ def log_sync_complete(db_manager, sync_id, status, records_processed=0, error_me
         update_query = """
         UPDATE tms_sync_log 
         SET end_time = CURRENT_TIMESTAMP,
-            status = %s,
-            records_processed = %s,
-            error_message = %s
-        WHERE id = %s;
+            status = :status,
+            records_processed = :records_processed,
+            error_message = :error_message
+        WHERE id = :sync_id;
         """
         
         with engine.connect() as conn:
-            conn.execute(update_query, (status, records_processed, error_message, sync_id))
+            from sqlalchemy import text
+            conn.execute(text(update_query), {
+                "status": status, 
+                "records_processed": records_processed, 
+                "error_message": error_message, 
+                "sync_id": sync_id
+            })
             conn.commit()
         
         logger.info(f"Sync completed with status: {status}")
@@ -88,22 +96,23 @@ def get_sync_status(db_manager, sync_type=None, limit=10):
             query = """
             SELECT sync_type, start_time, end_time, status, records_processed, error_message
             FROM tms_sync_log 
-            WHERE sync_type = %s
+            WHERE sync_type = :sync_type
             ORDER BY start_time DESC 
-            LIMIT %s;
+            LIMIT :limit;
             """
-            params = (sync_type, limit)
+            params = {"sync_type": sync_type, "limit": limit}
         else:
             query = """
             SELECT sync_type, start_time, end_time, status, records_processed, error_message
             FROM tms_sync_log 
             ORDER BY start_time DESC 
-            LIMIT %s;
+            LIMIT :limit;
             """
-            params = (limit,)
+            params = {"limit": limit}
         
         with engine.connect() as conn:
-            result = conn.execute(query, params)
+            from sqlalchemy import text
+            result = conn.execute(text(query), params)
             rows = result.fetchall()
         
         return rows
