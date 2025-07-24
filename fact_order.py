@@ -24,7 +24,7 @@ def get_fact_order_query(date_from=None, date_to=None):
         where_clause += " AND a.faktur_date <= CURRENT_DATE"
     
     return f"""
-    SELECT
+    SELECT DISTINCT ON (a.order_id)
       a.status,
       c.manifest_reference,
       a.order_id,
@@ -90,7 +90,7 @@ def get_fact_order_query(date_from=None, date_to=None):
       a.updated_date,
       g.location_confirmation_timestamp
     ORDER BY
-      a.faktur_date DESC
+      a.order_id, a.faktur_date DESC
     """
 
 def create_fact_order_table_schema_b(db_manager):
