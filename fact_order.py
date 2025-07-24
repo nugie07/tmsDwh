@@ -14,12 +14,22 @@ def get_fact_order_query(date_from=None, date_to=None):
     where_clause = "WHERE 1=1"
     
     if date_from:
-        where_clause += f" AND a.faktur_date >= '{date_from}'"
+        # Convert date object to proper string format
+        if hasattr(date_from, 'strftime'):
+            date_from_str = date_from.strftime('%Y-%m-%d')
+        else:
+            date_from_str = str(date_from)
+        where_clause += f" AND a.faktur_date >= '{date_from_str}'"
     else:
         where_clause += " AND a.faktur_date >= '2024-12-01'"
     
     if date_to:
-        where_clause += f" AND a.faktur_date <= '{date_to}'"
+        # Convert date object to proper string format
+        if hasattr(date_to, 'strftime'):
+            date_to_str = date_to.strftime('%Y-%m-%d')
+        else:
+            date_to_str = str(date_to)
+        where_clause += f" AND a.faktur_date <= '{date_to_str}'"
     else:
         where_clause += " AND a.faktur_date <= CURRENT_DATE"
     
