@@ -331,7 +331,7 @@ def main():
                        action='store_true',
                        help='Force recreate tables if they exist')
     parser.add_argument('--table',
-                       choices=['fact_order', 'fact_delivery', 'sync_log', 'all'],
+                       choices=['tms_fact_order', 'tms_fact_delivery', 'tms_sync_log', 'all'],
                        default='all',
                        help='Specific table to create (default: all)')
     
@@ -355,15 +355,15 @@ def main():
         else:
             # Create specific table
             table_configs = {
-                'fact_order': {
+                'tms_fact_order': {
                     'name': 'tms_fact_order',
                     'create_sql': get_fact_order_table_structure()
                 },
-                'fact_delivery': {
+                'tms_fact_delivery': {
                     'name': 'tms_fact_delivery',
                     'create_sql': get_fact_delivery_table_structure()
                 },
-                'sync_log': {
+                'tms_sync_log': {
                     'name': 'tms_sync_log',
                     'create_sql': get_sync_log_table_structure()
                 }
