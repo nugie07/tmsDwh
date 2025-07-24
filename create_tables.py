@@ -26,7 +26,7 @@ def get_fact_order_table_structure():
         delivery_date DATE,
         route_id VARCHAR(50),
         tms_complete TIMESTAMP,
-        location_confirmation TIMESTAMP,
+        location_confirmation TEXT,
         faktur_total_quantity NUMERIC(15,2),
         tms_total_quantity NUMERIC(15,2),
         total_return NUMERIC(15,2),
