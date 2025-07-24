@@ -18,8 +18,8 @@ TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
 echo "[$TIMESTAMP] Starting Temporary Tables Cleanup..." >> "$LOG_FILE"
 
-# Run the cleanup script
-python3 cleanup_temp_tables.py >> "$LOG_FILE" 2>&1
+# Run the cleanup script with sudo
+sudo python3 cleanup_temp_tables.py >> "$LOG_FILE" 2>&1
 
 # Check exit status
 if [ $? -eq 0 ]; then

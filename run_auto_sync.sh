@@ -18,8 +18,8 @@ TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
 echo "[$TIMESTAMP] Starting Auto Sync Monthly..." >> "$LOG_FILE"
 
-# Run the auto sync script
-python3 auto_sync_monthly.py >> "$LOG_FILE" 2>&1
+# Run the auto sync script with sudo
+sudo python3 auto_sync_monthly.py >> "$LOG_FILE" 2>&1
 
 # Check exit status
 if [ $? -eq 0 ]; then
