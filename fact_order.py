@@ -122,7 +122,8 @@ def create_fact_order_table_schema_b(db_manager):
     try:
         engine = db_manager.get_db_b_engine()
         with engine.connect() as conn:
-            conn.execute(create_table_query)
+            from sqlalchemy import text
+            conn.execute(text(create_table_query))
             conn.commit()
         logger.info("tms_fact_order table created/verified in Database B")
     except Exception as e:
