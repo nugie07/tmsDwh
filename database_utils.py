@@ -118,6 +118,9 @@ class DatabaseManager:
             if 'last_synced' not in df.columns:
                 df['last_synced'] = datetime.now(pytz.UTC)
             
+            # Remove duplicates based on unique columns before upsert
+            df = df.drop_duplicates(subset=unique_columns, keep='first')
+            
             # Create temporary table for upsert
             temp_table_name = f"temp_{table_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             
