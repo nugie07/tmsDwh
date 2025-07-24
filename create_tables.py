@@ -178,12 +178,55 @@ def create_table(db_manager, table_name, create_sql):
         engine = db_manager.get_db_b_engine()
         with engine.connect() as conn:
             from sqlalchemy import text
-            # Split the SQL into individual statements
-            statements = create_sql.split(';')
             
+            # Split SQL into individual statements and execute each separately
+            statements = []
+            current_statement = ""
+            in_function = False
+            function_start = 0
+            
+            lines = create_sql.split('\n')
+            for i, line in enumerate(lines):
+                stripped_line = line.strip()
+                
+                # Check if we're starting a function
+                if 'CREATE OR REPLACE FUNCTION' in stripped_line:
+                    in_function = True
+                    function_start = i
+                    # Execute any accumulated statements first
+                    if current_statement.strip():
+                        statements.append(current_statement.strip())
+                        current_statement = ""
+                
+                # Check if we're ending a function
+                elif in_function and '$$ LANGUAGE plpgsql;' in stripped_line:
+                    in_function = False
+                    # Add the complete function to statements
+                    function_lines = lines[function_start:i+1]
+                    function_sql = '\n'.join(function_lines)
+                    statements.append(function_sql)
+                    current_statement = ""
+                    continue
+                
+                # If we're in a function, skip adding to current_statement
+                if in_function:
+                    continue
+                
+                # Add line to current statement
+                current_statement += line + '\n'
+                
+                # If line ends with semicolon and we're not in a function, it's a complete statement
+                if stripped_line.endswith(';') and not in_function:
+                    statements.append(current_statement.strip())
+                    current_statement = ""
+            
+            # Add any remaining statement
+            if current_statement.strip():
+                statements.append(current_statement.strip())
+            
+            # Execute each statement separately
             for statement in statements:
-                statement = statement.strip()
-                if statement:  # Skip empty statements
+                if statement.strip():
                     conn.execute(text(statement))
             
             conn.commit()
