@@ -142,13 +142,15 @@ class DatabaseManager:
             
             # Execute upsert
             with engine.connect() as conn:
-                conn.execute(upsert_query)
+                from sqlalchemy import text
+                conn.execute(text(upsert_query))
                 conn.commit()
             
             # Drop temporary table
             drop_query = f"DROP TABLE IF EXISTS {schema}.{temp_table_name}"
             with engine.connect() as conn:
-                conn.execute(drop_query)
+                from sqlalchemy import text
+                conn.execute(text(drop_query))
                 conn.commit()
             
             logger.info(f"Successfully upserted {len(df)} rows to {schema}.{table_name}")
