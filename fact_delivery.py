@@ -6,6 +6,7 @@ This program executes the fact_delivery query from Database A and upserts the re
 
 import sys
 import logging
+import pandas as pd
 from database_utils import DatabaseManager, logger
 
 def get_fact_delivery_query(date_from=None, date_to=None):
@@ -43,7 +44,13 @@ def get_fact_delivery_query(date_from=None, date_to=None):
         c.faktur_date,
         DATE(a.created_date) AS created_date_only,
         a.created_date::TIMESTAMP::TIME as waktu,
-        c.delivery_date,
+        CASE 
+          WHEN c.delivery_date IS NOT NULL 
+          AND c.delivery_date >= '1900-01-01'::date
+          AND c.delivery_date <= '2100-12-31'::date
+          THEN c.delivery_date 
+          ELSE NULL 
+        END AS delivery_date,
         a.status,
         c.client_id,
         c.warehouse_id,
@@ -160,6 +167,20 @@ def process_fact_delivery(date_from=None, date_to=None):
         logger.info("Executing fact_delivery query on Database A...")
         query = get_fact_delivery_query(date_from=date_from, date_to=date_to)
         df = db_manager.execute_query_to_dataframe(query, 'A')
+        
+        # Convert date columns to proper format for pandas
+        if not df.empty:
+            # Convert faktur_date to datetime.date if it's not null
+            if 'faktur_date' in df.columns:
+                df['faktur_date'] = pd.to_datetime(df['faktur_date'], errors='coerce').dt.date
+            
+            # Convert created_date_only to datetime.date if it's not null
+            if 'created_date_only' in df.columns:
+                df['created_date_only'] = pd.to_datetime(df['created_date_only'], errors='coerce').dt.date
+            
+            # Convert delivery_date to datetime.date if it's not null
+            if 'delivery_date' in df.columns:
+                df['delivery_date'] = pd.to_datetime(df['delivery_date'], errors='coerce').dt.date
         
         if df.empty:
             logger.warning("No data retrieved from fact_delivery query")
