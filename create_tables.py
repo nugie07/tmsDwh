@@ -27,10 +27,10 @@ def get_fact_order_table_structure():
         route_id VARCHAR(50),
         tms_complete TIMESTAMP,
         location_confirmation TEXT,
-        faktur_total_quantity NUMERIC(15,2),
-        tms_total_quantity NUMERIC(15,2),
-        total_return NUMERIC(15,2),
-        total_net_value NUMERIC(15,2),
+        faktur_total_quantity TEXT,
+        tms_total_quantity TEXT,
+        total_return TEXT,
+        total_net_value TEXT,
         
         -- Additional tracking columns
         last_synced TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
