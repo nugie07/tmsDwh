@@ -6,6 +6,7 @@ This program executes the fact_order query from Database A and upserts the resul
 
 import sys
 import logging
+import pandas as pd
 from database_utils import DatabaseManager, logger
 
 def get_fact_order_query(date_from=None, date_to=None):

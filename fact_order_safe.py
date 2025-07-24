@@ -7,6 +7,7 @@ Without the problematic location_confirmation_timestamp field
 
 import sys
 import logging
+import pandas as pd
 from database_utils import DatabaseManager, logger
 
 def get_fact_order_safe_query(date_from=None, date_to=None):
