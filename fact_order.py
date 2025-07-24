@@ -44,11 +44,11 @@ def get_fact_order_query(date_from=None, date_to=None):
       e.code,
       a.faktur_date,
       a.created_date AS tms_created,
-      DATE(c.created_date) AS route_created,
+      c.created_date::DATE AS route_created,
       a.delivery_date,
       c.route_id,
       a.updated_date AS tms_complete,
-      g.location_confirmation_timestamp as location_confirmation,
+      g.location_confirmation_timestamp::DATE as location_confirmation,
       SUM(od.quantity_faktur)::NUMERIC(15,2) AS faktur_total_quantity,
       SUM(od.quantity_delivery)::NUMERIC(15,2) AS tms_total_quantity,
       (SUM(od.quantity_delivery) - SUM(od.quantity_unloading))::NUMERIC(15,2) AS total_return,
@@ -157,6 +157,10 @@ def process_fact_order(date_from=None, date_to=None):
         # Execute query on Database A
         logger.info("Executing fact_order query on Database A...")
         query = get_fact_order_query(date_from=date_from, date_to=date_to)
+        
+        # Debug: Log the generated query
+        logger.info(f"Generated query: {query}")
+        
         df = db_manager.execute_query_to_dataframe(query, 'A')
         
         if df.empty:
