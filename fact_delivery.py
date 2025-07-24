@@ -35,7 +35,7 @@ def get_fact_delivery_query(date_from=None, date_to=None):
         where_clause += " AND c.faktur_date <= CURRENT_DATE"
     
     return f"""
-    SELECT
+    SELECT DISTINCT
         a.route_id,
         a.manifest_reference,
         b.route_detail_id,
