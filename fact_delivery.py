@@ -11,14 +11,17 @@ from database_utils import DatabaseManager, logger
 def get_fact_delivery_query(date_from=None, date_to=None):
     """Return the fact_delivery query with optional date filtering"""
     # Build WHERE clause based on date parameters
-    where_clause = ""
+    where_clause = "WHERE 1=1"
     
-    if date_from or date_to:
-        where_clause = "WHERE 1=1"
-        if date_from:
-            where_clause += f" AND c.faktur_date >= '{date_from}'"
-        if date_to:
-            where_clause += f" AND c.faktur_date <= '{date_to}'"
+    if date_from:
+        where_clause += f" AND c.faktur_date >= '{date_from}'"
+    else:
+        where_clause += " AND c.faktur_date >= '2024-12-01'"
+    
+    if date_to:
+        where_clause += f" AND c.faktur_date <= '{date_to}'"
+    else:
+        where_clause += " AND c.faktur_date <= CURRENT_DATE"
     
     return f"""
     SELECT
