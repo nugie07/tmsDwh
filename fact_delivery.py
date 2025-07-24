@@ -8,9 +8,19 @@ import sys
 import logging
 from database_utils import DatabaseManager, logger
 
-def get_fact_delivery_query():
-    """Return the fact_delivery query"""
-    return """
+def get_fact_delivery_query(date_from=None, date_to=None):
+    """Return the fact_delivery query with optional date filtering"""
+    # Build WHERE clause based on date parameters
+    where_clause = ""
+    
+    if date_from or date_to:
+        where_clause = "WHERE 1=1"
+        if date_from:
+            where_clause += f" AND c.faktur_date >= '{date_from}'"
+        if date_to:
+            where_clause += f" AND c.faktur_date <= '{date_to}'"
+    
+    return f"""
     SELECT
         a.route_id,
         a.manifest_reference,
@@ -64,6 +74,7 @@ def get_fact_delivery_query():
         PUBLIC.driver_tasks as i on i.order_id = b.order_id
     LEFT JOIN 
         PUBLIC.order_detail as j on j.order_id = b.order_id
+    {where_clause}
     """
 
 def create_fact_delivery_table_schema_b(db_manager):
@@ -117,10 +128,13 @@ def create_fact_delivery_table_schema_b(db_manager):
         logger.error(f"Error creating fact_delivery table: {e}")
         raise
 
-def process_fact_delivery():
-    """Main function to process fact_delivery data"""
+def process_fact_delivery(date_from=None, date_to=None):
+    """Main function to process fact_delivery data with optional date filtering"""
     try:
         logger.info("Starting fact_delivery data processing...")
+        
+        if date_from or date_to:
+            logger.info(f"Date filter: {date_from} to {date_to}")
         
         # Initialize database manager
         db_manager = DatabaseManager()
@@ -130,7 +144,7 @@ def process_fact_delivery():
         
         # Execute query on Database A
         logger.info("Executing fact_delivery query on Database A...")
-        query = get_fact_delivery_query()
+        query = get_fact_delivery_query(date_from=date_from, date_to=date_to)
         df = db_manager.execute_query_to_dataframe(query, 'A')
         
         if df.empty:

@@ -111,8 +111,8 @@ def get_sync_status(db_manager, sync_type=None, limit=10):
         logger.error(f"Error getting sync status: {e}")
         return []
 
-def run_sync(sync_type):
-    """Run synchronization for specified type"""
+def run_sync(sync_type, date_from=None, date_to=None):
+    """Run synchronization for specified type with optional date filtering"""
     db_manager = DatabaseManager()
     
     # Create sync_log table if not exists
@@ -123,17 +123,17 @@ def run_sync(sync_type):
     
     try:
         if sync_type == 'fact_order':
-            process_fact_order()
+            process_fact_order(date_from=date_from, date_to=date_to)
             log_sync_complete(db_manager, sync_id, 'SUCCESS')
         elif sync_type == 'fact_delivery':
-            process_fact_delivery()
+            process_fact_delivery(date_from=date_from, date_to=date_to)
             log_sync_complete(db_manager, sync_id, 'SUCCESS')
         elif sync_type == 'both':
             # Run both synchronizations
             logger.info("Starting fact_order sync...")
-            process_fact_order()
+            process_fact_order(date_from=date_from, date_to=date_to)
             logger.info("Starting fact_delivery sync...")
-            process_fact_delivery()
+            process_fact_delivery(date_from=date_from, date_to=date_to)
             log_sync_complete(db_manager, sync_id, 'SUCCESS')
         else:
             raise ValueError(f"Invalid sync_type: {sync_type}")
@@ -146,9 +146,8 @@ def run_sync(sync_type):
 
 def main():
     parser = argparse.ArgumentParser(description='Data Synchronization Manager')
-    parser.add_argument('--sync-type', 
+    parser.add_argument('--sync', 
                        choices=['fact_order', 'fact_delivery', 'both'],
-                       default='both',
                        help='Type of synchronization to run')
     parser.add_argument('--status', 
                        action='store_true',
@@ -160,6 +159,12 @@ def main():
                        type=int,
                        default=10,
                        help='Number of status records to show (default: 10)')
+    parser.add_argument('--date-from',
+                       type=str,
+                       help='Start date for filtering (YYYY-MM-DD format, e.g., 2025-07-01)')
+    parser.add_argument('--date-to',
+                       type=str,
+                       help='End date for filtering (YYYY-MM-DD format, e.g., 2025-07-07)')
     
     args = parser.parse_args()
     
@@ -183,11 +188,37 @@ def main():
             error_str = error[:30] + '...' if error and len(error) > 30 else error or ''
             
             print(f"{sync_type:<15} {start_str:<20} {end_str:<20} {status:<10} {records or 0:<8} {error_str}")
-    else:
+    elif args.sync:
+        # Validate date format if provided
+        date_from = None
+        date_to = None
+        
+        if args.date_from:
+            try:
+                from datetime import datetime
+                date_from = datetime.strptime(args.date_from, '%Y-%m-%d').date()
+                logger.info(f"Filtering from date: {date_from}")
+            except ValueError:
+                logger.error("Invalid date format for --date-from. Use YYYY-MM-DD format.")
+                return
+        
+        if args.date_to:
+            try:
+                from datetime import datetime
+                date_to = datetime.strptime(args.date_to, '%Y-%m-%d').date()
+                logger.info(f"Filtering to date: {date_to}")
+            except ValueError:
+                logger.error("Invalid date format for --date-to. Use YYYY-MM-DD format.")
+                return
+        
         # Run synchronization
-        logger.info(f"Starting {args.sync_type} synchronization...")
-        run_sync(args.sync_type)
+        logger.info(f"Starting {args.sync} synchronization...")
+        if date_from or date_to:
+            logger.info(f"Date filter: {date_from} to {date_to}")
+        run_sync(args.sync, date_from=date_from, date_to=date_to)
         logger.info("Synchronization completed successfully!")
+    else:
+        parser.print_help()
 
 if __name__ == "__main__":
     main() 

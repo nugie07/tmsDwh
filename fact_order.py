@@ -8,9 +8,22 @@ import sys
 import logging
 from database_utils import DatabaseManager, logger
 
-def get_fact_order_query():
-    """Return the fact_order query"""
-    return """
+def get_fact_order_query(date_from=None, date_to=None):
+    """Return the fact_order query with optional date filtering"""
+    # Build WHERE clause based on date parameters
+    where_clause = "WHERE 1=1"
+    
+    if date_from:
+        where_clause += f" AND a.faktur_date >= '{date_from}'"
+    else:
+        where_clause += " AND a.faktur_date >= '2024-12-01'"
+    
+    if date_to:
+        where_clause += f" AND a.faktur_date <= '{date_to}'"
+    else:
+        where_clause += " AND a.faktur_date <= CURRENT_DATE"
+    
+    return f"""
     SELECT
       a.status,
       c.manifest_reference,
@@ -60,9 +73,7 @@ def get_fact_order_query():
       "public"."order_detail" AS od
     ON
       od.order_id = a.order_id
-    WHERE
-      a.faktur_date >= '2024-12-01'
-      AND a.faktur_date <= CURRENT_DATE
+    {where_clause}
     GROUP BY
       a.status,
       c.manifest_reference,
@@ -118,10 +129,13 @@ def create_fact_order_table_schema_b(db_manager):
         logger.error(f"Error creating fact_order table: {e}")
         raise
 
-def process_fact_order():
-    """Main function to process fact_order data"""
+def process_fact_order(date_from=None, date_to=None):
+    """Main function to process fact_order data with optional date filtering"""
     try:
         logger.info("Starting fact_order data processing...")
+        
+        if date_from or date_to:
+            logger.info(f"Date filter: {date_from} to {date_to}")
         
         # Initialize database manager
         db_manager = DatabaseManager()
@@ -131,7 +145,7 @@ def process_fact_order():
         
         # Execute query on Database A
         logger.info("Executing fact_order query on Database A...")
-        query = get_fact_order_query()
+        query = get_fact_order_query(date_from=date_from, date_to=date_to)
         df = db_manager.execute_query_to_dataframe(query, 'A')
         
         if df.empty:
