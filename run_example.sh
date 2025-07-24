@@ -30,43 +30,53 @@ fi
 echo ""
 echo "Available commands:"
 echo "1. Run both synchronizations:"
-echo "   python3 sync_manager.py --sync-type both"
+echo "   python3 sync_manager.py --sync both"
 echo ""
 echo "2. Run fact_order only:"
-echo "   python3 sync_manager.py --sync-type fact_order"
+echo "   python3 sync_manager.py --sync fact_order"
 echo ""
 echo "3. Run fact_delivery only:"
-echo "   python3 sync_manager.py --sync-type fact_delivery"
+echo "   python3 sync_manager.py --sync fact_delivery"
 echo ""
-echo "4. Check sync status:"
+echo "4. Run with date filter (e.g., 2025-07-01 to 2025-07-07):"
+echo "   python3 sync_manager.py --sync both --date-from 2025-07-01 --date-to 2025-07-07"
+echo ""
+echo "5. Check sync status:"
 echo "   python3 sync_manager.py --status"
 echo ""
-echo "5. Run individual programs:"
+echo "6. Run individual programs:"
 echo "   python3 fact_order.py"
 echo "   python3 fact_delivery.py"
 echo ""
 
 # Ask user what to do
-read -p "What would you like to do? (1-5, or 'q' to quit): " choice
+read -p "What would you like to do? (1-6, or 'q' to quit): " choice
 
 case $choice in
     1)
         echo "Running both synchronizations..."
-        python3 sync_manager.py --sync-type both
+        python3 sync_manager.py --sync both
         ;;
     2)
         echo "Running fact_order synchronization..."
-        python3 sync_manager.py --sync-type fact_order
+        python3 sync_manager.py --sync fact_order
         ;;
     3)
         echo "Running fact_delivery synchronization..."
-        python3 sync_manager.py --sync-type fact_delivery
+        python3 sync_manager.py --sync fact_delivery
         ;;
     4)
+        echo "Running with date filter..."
+        read -p "Enter start date (YYYY-MM-DD): " date_from
+        read -p "Enter end date (YYYY-MM-DD): " date_to
+        echo "Running both synchronizations with date filter..."
+        python3 sync_manager.py --sync both --date-from "$date_from" --date-to "$date_to"
+        ;;
+    5)
         echo "Checking sync status..."
         python3 sync_manager.py --status
         ;;
-    5)
+    6)
         echo "Running individual programs..."
         echo "1. fact_order.py"
         echo "2. fact_delivery.py"
