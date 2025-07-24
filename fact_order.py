@@ -173,6 +173,24 @@ def process_fact_order(date_from=None, date_to=None):
         
         df = db_manager.execute_query_to_dataframe(query, 'A')
         
+        # Convert date columns to proper format for pandas
+        if not df.empty:
+            # Convert route_created to datetime.date if it's not null
+            if 'route_created' in df.columns:
+                df['route_created'] = pd.to_datetime(df['route_created'], errors='coerce').dt.date
+            
+            # Convert location_confirmation to datetime.date if it's not null
+            if 'location_confirmation' in df.columns:
+                df['location_confirmation'] = pd.to_datetime(df['location_confirmation'], errors='coerce').dt.date
+            
+            # Convert faktur_date to datetime.date if it's not null
+            if 'faktur_date' in df.columns:
+                df['faktur_date'] = pd.to_datetime(df['faktur_date'], errors='coerce').dt.date
+            
+            # Convert delivery_date to datetime.date if it's not null
+            if 'delivery_date' in df.columns:
+                df['delivery_date'] = pd.to_datetime(df['delivery_date'], errors='coerce').dt.date
+        
         if df.empty:
             logger.warning("No data retrieved from fact_order query")
             return
