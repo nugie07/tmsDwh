@@ -44,11 +44,19 @@ def get_fact_order_query(date_from=None, date_to=None):
       e.code,
       a.faktur_date,
       a.created_date AS tms_created,
-      c.created_date::DATE AS route_created,
+      CASE 
+        WHEN c.created_date IS NOT NULL 
+        THEN c.created_date::DATE 
+        ELSE NULL 
+      END AS route_created,
       a.delivery_date,
       c.route_id,
       a.updated_date AS tms_complete,
-      g.location_confirmation_timestamp::DATE as location_confirmation,
+      CASE 
+        WHEN g.location_confirmation_timestamp IS NOT NULL 
+        THEN g.location_confirmation_timestamp::DATE 
+        ELSE NULL 
+      END as location_confirmation,
       SUM(od.quantity_faktur)::NUMERIC(15,2) AS faktur_total_quantity,
       SUM(od.quantity_delivery)::NUMERIC(15,2) AS tms_total_quantity,
       (SUM(od.quantity_delivery) - SUM(od.quantity_unloading))::NUMERIC(15,2) AS total_return,
