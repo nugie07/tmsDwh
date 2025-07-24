@@ -121,6 +121,59 @@ def find_problematic_data_in_date_range():
         logger.error(f"Error checking problematic data in date range: {e}")
         print(f"Error: {e}")
 
+def test_each_timestamp_field_individually():
+    """Test each timestamp field individually to identify which one is problematic"""
+    
+    db_manager = DatabaseManager()
+    
+    # Test each field one by one
+    fields_to_test = [
+        ("o.faktur_date", "faktur_date"),
+        ("o.created_date", "order_created_date"),
+        ("o.updated_date", "order_updated_date"),
+        ("o.delivery_date", "delivery_date"),
+        ("c.created_date", "route_created_date"),
+        ("g.location_confirmation_timestamp", "location_confirmation_timestamp")
+    ]
+    
+    for field_expr, field_name in fields_to_test:
+        try:
+            print(f"\n=== Testing field: {field_name} ===")
+            
+            test_query = f"""
+            SELECT 
+                o.order_id,
+                {field_expr},
+                {field_expr}::TEXT as {field_name}_text,
+                EXTRACT(YEAR FROM {field_expr}) as {field_name}_year
+            FROM "public"."order" o
+            LEFT JOIN "public"."route_detail" b ON b.order_id = o.order_id
+            LEFT JOIN "public"."route" c ON c.route_id = b.route_id
+            LEFT JOIN "public"."driver_tasks" f ON f.order_id = o.order_id
+            LEFT JOIN "public"."driver_task_confirmations" g ON g.driver_task_id = f.driver_task_id
+            WHERE o.faktur_date >= '2025-04-01' 
+            AND o.faktur_date <= '2025-05-31'
+            AND {field_expr} IS NOT NULL
+            ORDER BY {field_expr} DESC
+            LIMIT 5;
+            """
+            
+            df = db_manager.execute_query_to_dataframe(test_query, 'A')
+            print(f"✓ {field_name} - Query successful! Retrieved {len(df)} rows")
+            
+            # Check for problematic years
+            year_col = f"{field_name}_year"
+            if year_col in df.columns:
+                problematic_years = df[df[year_col] > 2100]
+                if not problematic_years.empty:
+                    print(f"⚠️  PROBLEMATIC YEARS FOUND in {field_name}:")
+                    print(problematic_years.to_string())
+                else:
+                    print(f"✓ No problematic years found in {field_name}")
+            
+        except Exception as e:
+            print(f"❌ ERROR in {field_name}: {e}")
+
 def check_all_timestamp_fields():
     """Check all timestamp fields that might be causing the issue"""
     
@@ -352,6 +405,9 @@ def test_query_with_problematic_field():
 
 if __name__ == "__main__":
     print("Debugging problematic data causing 'year 252025' error...")
+    
+    # Test each timestamp field individually
+    test_each_timestamp_field_individually()
     
     # Check for problematic timestamp data
     check_problematic_timestamp_data()
