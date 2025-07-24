@@ -1,0 +1,17 @@
+[Unit]
+Description=TMS Data Warehouse Web Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/tmsDwh
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=WEB_HOST=0.0.0.0
+Environment=WEB_PORT=5000
+ExecStart=/usr/bin/python3 /home/tmsDwh/web_dashboard.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target 
