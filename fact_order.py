@@ -38,7 +38,7 @@ def get_fact_order_query(date_from=None, date_to=None):
       a.delivery_date,
       c.route_id,
       a.updated_date AS tms_complete,
-      DATE(g.location_confirmation_timestamp)::DATE as location_confirmation,
+      g.location_confirmation_timestamp as location_confirmation,
       SUM(od.quantity_faktur) AS faktur_total_quantity,
       SUM(od.quantity_delivery) AS tms_total_quantity,
       SUM(od.quantity_delivery) - SUM(od.quantity_unloading) AS total_return,
