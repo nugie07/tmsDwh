@@ -195,13 +195,9 @@ HTML_TEMPLATE = """
             </div>
 
             <div class="controls">
-                <h3>Quick Actions</h3>
-                <a href="/sync/both" class="btn btn-success">🔄 Sync Both Tables</a>
-                <a href="/sync/fact_order" class="btn">📋 Sync Fact Order</a>
-                <a href="/sync/fact_delivery" class="btn">🚚 Sync Fact Delivery</a>
-                <a href="/status" class="btn">📊 Refresh Status</a>
-                <a href="/status/fact_order" class="btn">📋 Order Status</a>
-                <a href="/status/fact_delivery" class="btn">🚚 Delivery Status</a>
+                <h3>Dashboard Info</h3>
+                <p>📊 Real-time monitoring dashboard for TMS Data Warehouse synchronization status.</p>
+                <p>🔄 Auto-refresh every 30 seconds to show latest sync history.</p>
             </div>
 
             <div id="sync-history">
@@ -340,15 +336,8 @@ def api_status():
 
 @app.route('/sync/<sync_type>')
 def run_sync(sync_type):
-    """Run synchronization"""
-    try:
-        from sync_manager import run_sync
-        logger.info(f"Starting {sync_type} sync from web dashboard...")
-        run_sync(sync_type)
-        return jsonify({'status': 'success', 'message': f'{sync_type} sync completed successfully'})
-    except Exception as e:
-        logger.error(f"Error running {sync_type} sync: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+    """Sync endpoint disabled - use command line instead"""
+    return jsonify({'status': 'disabled', 'message': 'Sync via web dashboard is disabled. Use command line: python3 sync_manager.py both'}), 403
 
 @app.route('/status')
 def status_page():
