@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-Fact Order Data Processing Program
+Safe Fact Order Data Processing Program
 This program executes the fact_order query from Database A and upserts the results to Database B
+Without the problematic location_confirmation_timestamp field
 """
 
 import sys
 import logging
 from database_utils import DatabaseManager, logger
 
-def get_fact_order_query(date_from=None, date_to=None):
-    """Return the fact_order query with optional date filtering"""
+def get_fact_order_safe_query(date_from=None, date_to=None):
+    """Return the fact_order query with optional date filtering (safe version)"""
     # Build WHERE clause based on date parameters
     where_clause = "WHERE 1=1"
     
@@ -52,13 +53,6 @@ def get_fact_order_query(date_from=None, date_to=None):
       a.delivery_date,
       c.route_id,
       a.updated_date AS tms_complete,
-      CASE 
-        WHEN g.location_confirmation_timestamp IS NOT NULL 
-        AND g.location_confirmation_timestamp >= '1900-01-01'::timestamp
-        AND g.location_confirmation_timestamp <= '2100-12-31'::timestamp
-        THEN g.location_confirmation_timestamp::DATE 
-        ELSE NULL 
-      END as location_confirmation,
       SUM(od.quantity_faktur)::NUMERIC(15,2) AS faktur_total_quantity,
       SUM(od.quantity_delivery)::NUMERIC(15,2) AS tms_total_quantity,
       (SUM(od.quantity_delivery) - SUM(od.quantity_unloading))::NUMERIC(15,2) AS total_return,
@@ -82,14 +76,6 @@ def get_fact_order_query(date_from=None, date_to=None):
     ON
       e.mst_vehicle_id = c.vehicle_id
     LEFT JOIN
-      "public"."driver_tasks" AS f
-    ON
-      f.order_id = a.order_id
-    LEFT JOIN
-      "public"."driver_task_confirmations" AS g
-    ON
-      g.driver_task_id = f.driver_task_id
-    LEFT JOIN
       "public"."order_detail" AS od
     ON
       od.order_id = a.order_id
@@ -107,16 +93,15 @@ def get_fact_order_query(date_from=None, date_to=None):
       c.created_date,
       a.delivery_date,
       c.route_id,
-      a.updated_date,
-      g.location_confirmation_timestamp
+      a.updated_date
     ORDER BY
       a.order_id, a.faktur_date DESC
     """
 
-def create_fact_order_table_schema_b(db_manager):
-    """Create fact_order table in Database B if it doesn't exist"""
+def create_fact_order_safe_table_schema_b(db_manager):
+    """Create fact_order_safe table in Database B if it doesn't exist"""
     create_table_query = """
-    CREATE TABLE IF NOT EXISTS tms_fact_order (
+    CREATE TABLE IF NOT EXISTS tms_fact_order_safe (
         status VARCHAR(50),
         manifest_reference VARCHAR(100),
         order_id VARCHAR(50) PRIMARY KEY,
@@ -130,7 +115,6 @@ def create_fact_order_table_schema_b(db_manager):
         delivery_date DATE,
         route_id VARCHAR(50),
         tms_complete TIMESTAMP,
-        location_confirmation DATE,
         faktur_total_quantity NUMERIC(15,2),
         tms_total_quantity NUMERIC(15,2),
         total_return NUMERIC(15,2),
@@ -145,15 +129,15 @@ def create_fact_order_table_schema_b(db_manager):
             from sqlalchemy import text
             conn.execute(text(create_table_query))
             conn.commit()
-        logger.info("tms_fact_order table created/verified in Database B")
+        logger.info("tms_fact_order_safe table created/verified in Database B")
     except Exception as e:
-        logger.error(f"Error creating fact_order table: {e}")
+        logger.error(f"Error creating fact_order_safe table: {e}")
         raise
 
-def process_fact_order(date_from=None, date_to=None):
-    """Main function to process fact_order data with optional date filtering"""
+def process_fact_order_safe(date_from=None, date_to=None):
+    """Main function to process fact_order data with optional date filtering (safe version)"""
     try:
-        logger.info("Starting fact_order data processing...")
+        logger.info("Starting fact_order_safe data processing...")
         
         if date_from or date_to:
             logger.info(f"Date filter: {date_from} to {date_to}")
@@ -162,35 +146,35 @@ def process_fact_order(date_from=None, date_to=None):
         db_manager = DatabaseManager()
         
         # Create table in Database B if not exists
-        create_fact_order_table_schema_b(db_manager)
+        create_fact_order_safe_table_schema_b(db_manager)
         
         # Execute query on Database A
-        logger.info("Executing fact_order query on Database A...")
-        query = get_fact_order_query(date_from=date_from, date_to=date_to)
+        logger.info("Executing fact_order_safe query on Database A...")
+        query = get_fact_order_safe_query(date_from=date_from, date_to=date_to)
         
         # Debug: Log the generated query
-        logger.info(f"Generated query: {query}")
+        logger.info(f"Generated safe query: {query}")
         
         df = db_manager.execute_query_to_dataframe(query, 'A')
         
         if df.empty:
-            logger.warning("No data retrieved from fact_order query")
+            logger.warning("No data retrieved from fact_order_safe query")
             return
         
-        logger.info(f"Retrieved {len(df)} rows from fact_order query")
+        logger.info(f"Retrieved {len(df)} rows from fact_order_safe query")
         
         # Define unique columns for upsert
         unique_columns = ['order_id']
         
         # Upsert data to Database B
-        logger.info("Upserting fact_order data to Database B...")
-        db_manager.upsert_dataframe_to_db(df, 'tms_fact_order', unique_columns, 'B')
+        logger.info("Upserting fact_order_safe data to Database B...")
+        db_manager.upsert_dataframe_to_db(df, 'tms_fact_order_safe', unique_columns, 'B')
         
-        logger.info("fact_order data processing completed successfully!")
+        logger.info("fact_order_safe data processing completed successfully!")
         
     except Exception as e:
-        logger.error(f"Error in fact_order processing: {e}")
+        logger.error(f"Error in fact_order_safe processing: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
-    process_fact_order() 
+    process_fact_order_safe() 
