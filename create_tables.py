@@ -179,13 +179,50 @@ def create_table(db_manager, table_name, create_sql):
         with engine.connect() as conn:
             from sqlalchemy import text
             
-            # Split by semicolon and filter out empty statements and comments
+            # Parse SQL statements properly, handling PostgreSQL functions
             statements = []
-            for statement in create_sql.split(';'):
-                statement = statement.strip()
-                # Skip empty statements and comment-only statements
-                if statement and not statement.startswith('--'):
-                    statements.append(statement + ';')
+            current_statement = ""
+            in_function = False
+            dollar_count = 0
+            
+            lines = create_sql.split('\n')
+            for line in lines:
+                stripped_line = line.strip()
+                
+                # Skip comment lines
+                if stripped_line.startswith('--'):
+                    continue
+                
+                # Check for function start
+                if 'CREATE OR REPLACE FUNCTION' in stripped_line:
+                    # Execute any accumulated statement first
+                    if current_statement.strip():
+                        statements.append(current_statement.strip())
+                        current_statement = ""
+                    in_function = True
+                
+                # Count dollar signs to track function body
+                if in_function:
+                    dollar_count += stripped_line.count('$$')
+                    current_statement += line + '\n'
+                    
+                    # If we have an even number of $$, function is complete
+                    if dollar_count % 2 == 0 and dollar_count > 0:
+                        in_function = False
+                        statements.append(current_statement.strip())
+                        current_statement = ""
+                        dollar_count = 0
+                else:
+                    current_statement += line + '\n'
+                    
+                    # If line ends with semicolon, it's a complete statement
+                    if stripped_line.endswith(';'):
+                        statements.append(current_statement.strip())
+                        current_statement = ""
+            
+            # Add any remaining statement
+            if current_statement.strip():
+                statements.append(current_statement.strip())
             
             # Execute each statement separately
             for statement in statements:
