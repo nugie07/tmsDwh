@@ -39,10 +39,10 @@ def get_fact_order_query(date_from=None, date_to=None):
       c.route_id,
       a.updated_date AS tms_complete,
       g.location_confirmation_timestamp as location_confirmation,
-      SUM(od.quantity_faktur) AS faktur_total_quantity,
-      SUM(od.quantity_delivery) AS tms_total_quantity,
-      SUM(od.quantity_delivery) - SUM(od.quantity_unloading) AS total_return,
-      SUM(od.net_price) AS total_net_value
+      SUM(od.quantity_faktur)::NUMERIC(15,2) AS faktur_total_quantity,
+      SUM(od.quantity_delivery)::NUMERIC(15,2) AS tms_total_quantity,
+      (SUM(od.quantity_delivery) - SUM(od.quantity_unloading))::NUMERIC(15,2) AS total_return,
+      SUM(od.net_price)::NUMERIC(15,2) AS total_net_value
     FROM
       "public"."order" AS a
     LEFT JOIN
