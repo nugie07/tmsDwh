@@ -35,7 +35,7 @@ def get_fact_delivery_query(date_from=None, date_to=None):
         where_clause += " AND c.faktur_date <= CURRENT_DATE"
     
     return f"""
-    SELECT DISTINCT
+    SELECT
         a.route_id,
         a.manifest_reference,
         b.route_detail_id,
@@ -71,9 +71,9 @@ def get_fact_delivery_query(date_from=None, date_to=None):
         a.driver_status,
         a.manifest_integration_id,
         i.complete_time,
-        j.net_price,
-        j.quantity_delivery,
-        j.quantity_faktur
+        SUM(j.net_price)::NUMERIC(15,2) as net_price,
+        SUM(j.quantity_delivery)::NUMERIC(15,2) as quantity_delivery,
+        SUM(j.quantity_faktur)::NUMERIC(15,2) as quantity_faktur
     FROM
         PUBLIC.route AS a
     LEFT JOIN
@@ -95,6 +95,35 @@ def get_fact_delivery_query(date_from=None, date_to=None):
     LEFT JOIN 
         PUBLIC.order_detail as j on j.order_id = b.order_id
     {where_clause}
+    GROUP BY
+        a.route_id,
+        a.manifest_reference,
+        b.route_detail_id,
+        b.order_id,
+        c.do_number,
+        c.faktur_date,
+        a.created_date,
+        a.status,
+        c.client_id,
+        c.warehouse_id,
+        c.origin_name,
+        c.origin_city,
+        c.customer_id,
+        e.code,
+        e."name",
+        d.address,
+        d.address_text,
+        a.external_expedition_type,
+        a.vehicle_id,
+        a.driver_id,
+        f.plate_number,
+        g.driver_name,
+        a.kenek_id,
+        h.kenek_name,
+        a.driver_status,
+        a.manifest_integration_id,
+        i.complete_time,
+        c.delivery_date
     """
 
 def create_fact_delivery_table_schema_b(db_manager):
